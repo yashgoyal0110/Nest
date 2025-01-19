@@ -52,6 +52,11 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      spacing: {
+        128: '32rem', // 512px
+        160: '40rem', // 640px
+        192: '48rem', // 768px
+      },
     },
   },
   darkMode: ['class'],

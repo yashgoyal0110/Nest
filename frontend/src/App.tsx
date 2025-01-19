@@ -17,6 +17,7 @@ import { ErrorDisplay, ERROR_CONFIGS } from 'wrappers/ErrorWrapper'
 import Footer from 'components/Footer'
 import Header from 'components/Header'
 import { Toaster } from 'components/ui/Toaster'
+import HomePage from './HomePage/HomePage'
 
 function App() {
   const location = useLocation()
@@ -30,7 +31,7 @@ function App() {
       <Toaster />
       <Header />
       <Routes>
-        <Route path="/" element={<Home />}></Route>
+        <Route path="/" element={<HomePage />}></Route>
         <Route path="/projects" element={<ProjectsPage />}></Route>
         <Route path="/projects/:projectKey" element={<ProjectDetailsPage />}></Route>
         <Route path="/projects/contribute" element={<ContributePage />}></Route>
