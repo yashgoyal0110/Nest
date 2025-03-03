@@ -1,0 +1,79 @@
+name: Generate Models Graph
+
+on:
+  push:
+    paths:
+      - "backend/apps/**/models/**"
+      - "pyproject.toml"
+      - "README.md"
+  workflow_dispatch:
+
+jobs:
+  generate-model-graph:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y graphviz
+      - name: Create and Populate .env File
+        run: |
+          cat <<EOF > backend/.env
+          DJANGO_SENTRY_DSN=${{ secrets.DJANGO_SENTRY_DSN }}
+          DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          DJANGO_SETTINGS_MODULE=backend.settings.test
+          DJANGO_CONFIGURATION=Test
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          DJANGO_DB_PASSWORD=${{ secrets.DJANGO_DB_PASSWORD }}
+          DJANGO_ALLOWED_HOSTS=*
+          EOF
+      - name: Debug environment variables
+        run: |
+          cd backend
+          set -a
+          source .env
+          set +a
+          env | grep SECRET_KEY
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          poetry install --no-interaction --no-root --with dev
+          poetry add pydotplus  # Ensure pydotplus is installed
+          
+      - name: Generate Models Graph
+        run: |
+          cd backend
+          set -a
+          source .env
+          set +a
+          poetry run python generate_model_graph.py
+      - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/backend_models.png README.md
+          git commit -m "Update model diagram" || echo "No changes to commit"
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git ${{ github.ref }} || echo "No changes to push"
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-models-graph
+          path: backend/backend_models.png
