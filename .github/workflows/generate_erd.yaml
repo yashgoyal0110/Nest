@@ -2,6 +2,9 @@ name: Generate Models Graph
 
 on:
   push:
+    branches:
+      - main
+      - feat/model-graph
     paths:
       - "backend/apps/**/models/**"
       - "pyproject.toml"
