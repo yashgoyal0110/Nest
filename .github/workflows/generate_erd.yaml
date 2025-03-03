@@ -25,34 +25,41 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install poetry
-      
+
       - name: Install system dependencies
         run: |
           sudo apt update
           sudo apt install -y graphviz
+      
       - name: Create and Populate .env File
         run: |
-          cat <<EOF > backend/.env
-          DJANGO_SENTRY_DSN=${{ secrets.DJANGO_SENTRY_DSN }}
-          DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}
-          SECRET_KEY=${{ secrets.SECRET_KEY }}
-          DJANGO_SETTINGS_MODULE=backend.settings.test
-          DJANGO_CONFIGURATION=Test
-          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          DJANGO_DB_PASSWORD=${{ secrets.DJANGO_DB_PASSWORD }}
-          DJANGO_ALLOWED_HOSTS=*
-          EOF
-      - name: Debug environment variables
+          touch backend/.env  # Ensure the file exists
+          echo "DJANGO_SENTRY_DSN=${{ secrets.DJANGO_SENTRY_DSN }}" >> backend/.env
+          echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> backend/.env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> backend/.env
+          echo "DJANGO_CONFIGURATION=Test" >> backend/.env
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> backend/.env
+          echo "DJANGO_DB_PASSWORD=${{ secrets.DJANGO_DB_PASSWORD }}" >> backend/.env
+          echo "DJANGO_ALLOWED_HOSTS=*" >> backend/.env  # Example of a non-secret variable
+
+      - name: Debug .env file
         run: |
-          cd backend
-          set -a
-          source .env
-          set +a
-          env | grep SECRET_KEY
-      
+          ls -la backend  # Check if the .env file exists
+          cat backend/.env | grep -v DJANGO_DB_PASSWORD | grep -v DJANGO_SECRET_KEY
+
+      - name: Prepare secrets
+        run: |
+          echo "DJANGO_SENTRY_DSN=${{ secrets.DJANGO_SENTRY_DSN }}" >> .env.backend
+          echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> backend/.env.backend
+          echo "DJANGO_SETTINGS_MODULE=settings.test" >> backend/.env.backend
+          echo "DJANGO_CONFIGURATION=Test"
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> backend/.env
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> backend/.env.backend
+
       - name: Install dependencies
         run: |
           cd backend
+          export $(grep -v '^#' .env.backend | xargs)
           poetry install --no-interaction --no-root --with dev
           poetry add pydotplus  # Ensure pydotplus is installed
           
@@ -60,9 +67,10 @@ jobs:
         run: |
           cd backend
           set -a
-          source .env
+          source .env.backend
           set +a
-          poetry run python generate_model_graph.py
+          poetry run python manage.py graph_models -a -g -o backend_models.png
+
       - name: Commit and push changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,6 +80,7 @@ jobs:
           git add backend/backend_models.png README.md
           git commit -m "Update model diagram" || echo "No changes to commit"
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git ${{ github.ref }} || echo "No changes to push"
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
