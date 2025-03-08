@@ -3,6 +3,7 @@ import path from 'path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import EnvironmentPlugin from 'vite-plugin-environment'
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
   optimizeDeps: {
@@ -13,6 +14,13 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    visualizer({
+      filename: 'stats.html', // Generates a stats report
+      template: 'sunburst', // The format of the report
+      open: false,
+      gzipSize: true, // Shows gzip sizes
+      brotliSize: true, // Shows brotli sizes
+    }),
     EnvironmentPlugin({
       VITE_API_URL: process.env.VITE_API_URL,
       VITE_ENVIRONMENT: process.env.VITE_ENVIRONMENT,
