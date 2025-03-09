@@ -14,13 +14,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    visualizer({
-      filename: 'stats.html', // Generates a stats report
-      template: 'sunburst', // The format of the report
-      open: false,
-      gzipSize: true, // Shows gzip sizes
-      brotliSize: true, // Shows brotli sizes
-    }),
+ 
     EnvironmentPlugin({
       VITE_API_URL: process.env.VITE_API_URL,
       VITE_ENVIRONMENT: process.env.VITE_ENVIRONMENT,
