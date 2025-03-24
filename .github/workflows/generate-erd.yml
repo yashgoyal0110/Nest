@@ -1,0 +1,41 @@
+name: Update Models Relations Image
+
+on:
+  push:
+    paths:
+      - 'backend/apps/**/models/**/*.py'
+  workflow_dispatch:
+
+jobs:
+  generate-models-relations-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          cache: 'poetry'
+          cache-dependency-path: backend/poetry.lock
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          export PATH=$HOME/.local/bin:$PATH
+          poetry install
+
+      - name: Generate Models Relations Image
+        run: |
+          export PATH=$HOME/.local/bin:$PATH
+          poetry run python manage.py graph_models -a -o models_relations.png
+
+      - name: Upload Models Relations Image
+        uses: actions/upload-artifact@v2
+        with:
+          name: models-relations-image
+          path: models_relations.png
