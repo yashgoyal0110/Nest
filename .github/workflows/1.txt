@@ -1,1 +1,0 @@
-poetry run python manage.py graph_models -a -o models_relations.png
