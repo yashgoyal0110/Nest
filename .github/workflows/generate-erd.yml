@@ -1,41 +1,67 @@
-name: Update Models Relations Image
+name: Generate Graph Models
 
 on:
   push:
     paths:
-      - 'backend/apps/**/models/**/*.py'
+      - "backend/apps/*/models/*.py"
   workflow_dispatch:
 
 jobs:
-  generate-models-relations-image:
+  generate-graph:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Install Poetry
         run: pipx install poetry
+      
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+      
+      - name: Add Poetry to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          cache: 'poetry'
+          cache: "poetry"
           cache-dependency-path: backend/poetry.lock
-          python-version: '3.13'
+          python-version: "3.13"
 
-      - name: Install dependencies
+      - name: Install Dependencies
+        working-directory: backend
+        run: poetry install --no-root
+
+      - name: Prepare Dummy Secrets
         run: |
-          export PATH=$HOME/.local/bin:$PATH
-          poetry install
+          echo "DJANGO_SENTRY_DSN=None" >> $GITHUB_ENV
+          echo "DJANGO_ALGOLIA_APPLICATION_ID=None" >> $GITHUB_ENV
+          echo "DJANGO_ALGOLIA_WRITE_API_KEY=None" >> $GITHUB_ENV
+          echo "DJANGO_DB_PASSWORD=None" >> $GITHUB_ENV
+          echo "DJANGO_OPEN_AI_SECRET_KEY=None" >> $GITHUB_ENV
+          echo "DJANGO_SECRET_KEY=None" >> $GITHUB_ENV
+          echo "DJANGO_SLACK_BOT_TOKEN=None" >> $GITHUB_ENV
+          echo "DJANGO_SLACK_SIGNING_SECRET=None" >> $GITHUB_ENV
+          echo "DJANGO_SETTINGS_MODULE=settings.local" >> $GITHUB_ENV
+          echo "DJANGO_CONFIGURATION=Local" >> $GITHUB_ENV    
 
-      - name: Generate Models Relations Image
+      - name: Generate Graph Model Image
+        working-directory: backend
         run: |
-          export PATH=$HOME/.local/bin:$PATH
-          poetry run python manage.py graph_models -a -o models_relations.png
+          DJANGO_CONFIGURATION=$DJANGO_CONFIGURATION DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE poetry run python manage.py graph_models -a -o models_relations.png
 
-      - name: Upload Models Relations Image
-        uses: actions/upload-artifact@v2
+      - name: Upload Graph Image as Artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: models-relations-image
-          path: models_relations.png
+          name: models-relations
+          path: backend/models_relations.png
+
+      - name: Commit and Push Updated Image
+        working-directory: backend
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add models_relations.png
+          git diff --staged --quiet || (git commit -m "Update models relations graph" && git push)

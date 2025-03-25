@@ -18,3 +18,12 @@ class Local(Base):
     PUBLIC_IP_ADDRESS = values.Value()
     SLACK_COMMANDS_ENABLED = True
     SLACK_EVENTS_ENABLED = True
+    
+    INSTALLED_APPS = Base.INSTALLED_APPS + (
+        "django_extensions",
+    )
+    
+    GRAPH_MODELS = {
+        "all_applications": True,
+        "group_models": True,
+    }
