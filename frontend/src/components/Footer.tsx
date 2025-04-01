@@ -3,13 +3,16 @@ import { faGithub, faSlack, faBluesky } from '@fortawesome/free-brands-svg-icons
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useState, useCallback } from 'react'
-import type { Section } from 'types/section'
+import { Section } from 'types/section'
 import { footerSections } from 'utils/constants'
 
 export default function Footer() {
+  // State to keep track of the open section in the footer
   const [openSection, setOpenSection] = useState<string | null>(null)
 
+  // Function to toggle the section open/closed
   const toggleSection = useCallback((title: string) => {
+    // If the section is already open, close it, otherwise open it
     setOpenSection((prev) => (prev === title ? null : title))
   }, [])
 
@@ -18,19 +21,16 @@ export default function Footer() {
       icon: faBluesky,
       href: 'https://bsky.app/profile/nest.owasp.org',
       label: 'Bluesky',
-      color: '#1DA1F2',
     },
     {
       icon: faGithub,
       href: 'https://github.com/owasp/nest',
       label: 'GitHub',
-      color: '#333',
     },
     {
       icon: faSlack,
       href: 'https://owasp.slack.com/archives/project-nest',
       label: 'Slack',
-      color: '#4A154B',
     },
   ]
 
@@ -39,18 +39,18 @@ export default function Footer() {
       as="footer"
       className="mt-auto w-full border-t bg-slate-200 dark:bg-slate-800 xl:max-w-full"
     >
-      <Box className="container mx-auto px-4 py-8 sm:py-12">
+      <Box className="container mx-auto -mt-6 px-4 py-8 sm:py-12">
         <Box className="grid gap-8 md:gap-12 lg:grid-cols-12">
           <Box className="space-y-4 sm:space-y-6 lg:col-span-4">
-            <Box className="flex items-center space-x-2">
+            <Box className="flex items-center space-x-2 -ml-1.5 -mb-2">
               <Box className="flex h-8 w-8 items-center justify-center sm:h-10 sm:w-10">
                 <img
-                  src="img/owasp_icon_white_sm.png"
+                  src={'/img/owasp_icon_white_sm.png'}
                   alt="OWASP logo"
                   className="hidden dark:block"
                 />
                 <img
-                  src="img/owasp_icon_black_sm.png"
+                  src={'/img/owasp_icon_black_sm.png'}
                   alt="OWASP logo"
                   className="block dark:hidden"
                 />
@@ -59,9 +59,9 @@ export default function Footer() {
                 OWASP Nest
               </Heading>
             </Box>
-
             <Text className="max-w-md text-sm text-slate-600 dark:text-slate-400 sm:text-base">
-            OWASP Nest promotes collaboration, making it easier for both new and experienced contributors to engage meaningfully with OWASP's mission to improve software security worldwide.
+              OWASP Nest promotes collaboration, making it easier for contributors to engage
+              meaningfully with OWASP's mission to improve software security.
             </Text>
             <div className="flex items-center gap-2 sm:gap-3">
               {socialLinks.map((social) => (
@@ -144,9 +144,9 @@ export default function Footer() {
           </Box>
         </Box>
 
-        <Box className="my-6 h-px w-full bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:via-slate-600 sm:my-8" />
+        <Box className="my-6 -mt-1 h-px w-full bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:via-slate-600 sm:my-8" />
 
-        <Box className="mt-6 grid w-full place-content-center sm:mt-8">
+        <Box className="-mb-5 grid w-full place-content-center sm:mt-8">
           <Box className="flex w-full flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:gap-4 sm:text-left">
             <Text className="text-xs text-slate-600 dark:text-slate-400 sm:text-sm">
               ©{' '}
